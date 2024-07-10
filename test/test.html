@@ -1,0 +1,58 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Push Notifications</title>
+</head>
+<body>
+    <h1>Web Push Notifications</h1>
+    <button id="subscribe">Subscribe</button>
+    <script>
+        const publicKey = 'BBkL8jZ_j7kUimaKUZh9E8sB68rDje81cli_tVR_5G4FpDaHgEKvg_i8kiSyGJghvqgdGm0LKe1yFwd7_-himag';
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(swReg) {
+                    console.log('Service Worker is registered', swReg);
+
+                    document.getElementById('subscribe').addEventListener('click', function() {
+                        swReg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(publicKey)
+                        }).then(function(subscription) {
+                            fetch('/subscribe.php', {
+                                method: 'POST',
+                                body: JSON.stringify(subscription),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            }).then(function(response) {
+                                return response.text();
+                            }).then(function(data) {
+                                console.log(data);
+                            });
+                        }).catch(function(error) {
+                            console.error('Failed to subscribe', error);
+                        });
+                    });
+                });
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+    </script>
+</body>
+</html>
