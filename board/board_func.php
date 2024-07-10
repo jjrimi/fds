@@ -106,7 +106,7 @@ function write_board($title, $content) {
 
             echo '<script>
                 alert("게시글이 성공적으로 작성되었습니다.");
-                location.href = "temp.php";
+                location.href = "board.php";
                 </script>';
         } else {
             echo "Error: " . mysqli_error($conn);

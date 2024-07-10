@@ -2,7 +2,6 @@
     session_start();
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     $page_title = 'Board';
-    require_once('../base_header.php');
     require_once('./board_func.php');
 
     $page = $_GET['page'] ?? 1;
@@ -20,114 +19,166 @@
     $pagesPerGroup = 10;  // 페이지 그룹당 페이지 수
     $pageGroup = ceil($page / $pagesPerGroup);  // 페이지 그룹 번호
 ?>
-    <main>
-        <div class="container-fluid">
-            <h1 class="mt-4">게시판</h1>
-            
-            <div class="card mb-4">
-                <div class="card-body d-flex justify-content-between">
-                    <!-- 페이지당 게시글 수 선택 -->
-                    <select id="postsPerPage" class="me-auto">
-                        <option value="5">선택</option>
-                        <option value="5">5개</option>
-                        <option value="10">10개</option>
-                        <option value="15">15개</option>
-                    </select>
-                    <!-- 검색 순서 선택 -->
-                    <div>
-                        <select id="searchOrder">
-                            <option value="author">작성자</option>
-                            <option value="title">제목</option>
-                            <option value="content">내용</option>
-                        </select>
-                        <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-                            <div class="input-group">
-                                <input class="form-control" type="text" id="searchKeyword" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                                <button class="btn btn-secondary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 게시글 리스트 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table mr-1"></i>
-                    게시글 리스트
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>id</th>
-                                <th>작성자</th>
-                                <th>제목</th>
-                                <th>작성일</th>
-                                <th>조회수</th>
-                            </tr>
-                        </thead>
-                        <!-- 테이블 바디 -->
-                        <tbody>
-                            <?php
-                            foreach ($board as $row) {
-                                echo '<tr class="board-row" data-id="' . $row["id"] . '">';
-                                echo '<td>' . $row["id"] . '</td>';
-                                echo '<td>' . $row["author"] . '</td>';
-                                echo '<td>' . $row["title"] . '</td>';
-                                echo '<td>' . $row["date"] . '</td>';
-                                echo '<td>' . $row["views"] . '</td>';
-                                echo '</tr>';
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-end">
-                        <a href="board_write.php" class="btn btn-secondary mt-3">글쓰기</a>
-                    </div>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>게시판</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="../assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+    <script src="../assets/vendor/js/helpers.js"></script>
+    <script src="../assets/js/config.js"></script>
+</head>
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <?php include("../navmenu.php"); ?>
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">게시판 /</span> 목록</h4>
 
-            <!-- 페이지 링크 -->
-            <div class="paginate d-flex justify-content-center my-3">
-                <?php
-                $totalPages = get_total_pages($postsPerPage);
-                $firstPage = ($pageGroup - 1) * $pagesPerGroup + 1;
-                $lastPage = min($firstPage + $pagesPerGroup - 1, $totalPages);
-                $prevGroup = $pageGroup > 1 ? $firstPage - 1 : 1;
-                $nextGroup = $pageGroup < ceil($totalPages / $pagesPerGroup) ? $lastPage + 1 : $totalPages;
-                ?>
-                <a href="board.php?page=<?php echo $prevGroup; ?>&postsPerPage=<?php echo $postsPerPage; ?>">이전</a>
-                <?php for ($i = $firstPage; $i <= $lastPage; $i++): ?>
-                    <a href="board.php?page=<?php echo $i; ?>&postsPerPage=<?php echo $postsPerPage; ?>" class="mx-1">
-                        <?php echo $i; ?>
-                    </a>
-                <?php endfor; ?>
-                <a href="board.php?page=<?php echo $nextGroup; ?>&postsPerPage=<?php echo $postsPerPage; ?>">다음</a>
+                    <!-- 게시판 컨트롤 -->
+                    <div class="card mb-4">
+                        <div class="card-body d-flex justify-content-between">
+                            <select id="postsPerPage" class="form-select w-auto me-2">
+                                <option value="5" <?php echo $postsPerPage == 5 ? 'selected' : ''; ?>>5개</option>
+                                <option value="10" <?php echo $postsPerPage == 10 ? 'selected' : ''; ?>>10개</option>
+                                <option value="15" <?php echo $postsPerPage == 15 ? 'selected' : ''; ?>>15개</option>
+                            </select>
+                            <div class="input-group">
+                                <select id="searchOrder" class="form-select">
+                                    <option value="author" <?php echo $searchOrder == 'author' ? 'selected' : ''; ?>>작성자</option>
+                                    <option value="title" <?php echo $searchOrder == 'title' ? 'selected' : ''; ?>>제목</option>
+                                    <option value="content" <?php echo $searchOrder == 'content' ? 'selected' : ''; ?>>내용</option>
+                                </select>
+                                <input type="text" id="searchKeyword" class="form-control" placeholder="검색어" value="<?php echo htmlspecialchars($searchKeyword); ?>" />
+                                <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="bx bx-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 게시글 리스트 -->
+                    <div class="card">
+                        <h5 class="card-header">게시글 리스트</h5>
+                        <div class="table-responsive text-nowrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>작성자</th>
+                                        <th>제목</th>
+                                        <th>작성일</th>
+                                        <th>조회수</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-border-bottom-0">
+                                    <?php
+                                    foreach ($board as $row) {
+                                        echo '<tr class="board-row" data-id="' . $row["id"] . '">';
+                                        echo '<td>' . $row["id"] . '</td>';
+                                        echo '<td>' . htmlspecialchars($row["author"]) . '</td>';
+                                        echo '<td>' . htmlspecialchars($row["title"]) . '</td>';
+                                        echo '<td>' . htmlspecialchars($row["date"]) . '</td>';
+                                        echo '<td>' . htmlspecialchars($row["views"]) . '</td>';
+                                        echo '</tr>';
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="board_write.php" class="btn btn-secondary">글쓰기</a>
+                    </div>
+
+                    <!-- 페이지 링크 -->
+                    <div class="pagination">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <?php
+                                $totalPages = get_total_pages($postsPerPage);
+                                $firstPage = ($pageGroup - 1) * $pagesPerGroup + 1;
+                                $lastPage = min($firstPage + $pagesPerGroup - 1, $totalPages);
+                                $prevGroup = $pageGroup > 1 ? $firstPage - 1 : 1;
+                                $nextGroup = $pageGroup < ceil($totalPages / $pagesPerGroup) ? $lastPage + 1 : $totalPages;
+                                ?>
+                                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                    <a class="page-link" href="board.php?page=<?php echo $prevGroup; ?>&postsPerPage=<?php echo $postsPerPage; ?>">이전</a>
+                                </li>
+                                <?php for ($i = $firstPage; $i <= $lastPage; $i++): ?>
+                                    <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                                        <a class="page-link" href="board.php?page=<?php echo $i; ?>&postsPerPage=<?php echo $postsPerPage; ?>"><?php echo $i; ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                                <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
+                                    <a class="page-link" href="board.php?page=<?php echo $nextGroup; ?>&postsPerPage=<?php echo $postsPerPage; ?>">다음</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <footer class="content-footer footer bg-footer-theme">
+                    <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                        <div class="mb-2 mb-md-0">
+                            © <script>document.write(new Date().getFullYear());</script>, made with ❤️ by <a href="https://themeselection.com" target="_blank" class="footer-link fw-bolder">ThemeSelection</a>
+                        </div>
+                        <div>
+                            <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">License</a>
+                            <a href="https://themeselection.com/" target="_blank" class="footer-link me-4">More Themes</a>
+                            <a href="https://themeselection.com/demo/sneat-bootstrap-html-admin-template/documentation/" target="_blank" class="footer-link me-4">Documentation</a>
+                            <a href="https://github.com/themeselection/sneat-html-admin-template-free/issues" target="_blank" class="footer-link me-4">Support</a>
+                        </div>
+                    </div>
+                </footer>
+                <div class="content-backdrop fade"></div>
             </div>
         </div>
-    </main>
-
-<script>
-    // 게시글 행 클릭 이벤트
-    document.querySelectorAll('.board-row').forEach(row => {
-        row.addEventListener('click', () => {
-            const id = row.dataset.id;
-            location.href = 'board_detail.php?id=' + id;
+        <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <script src="../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../assets/vendor/js/bootstrap.js"></script>
+    <script src="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../assets/vendor/js/menu.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script>
+        document.querySelector('#postsPerPage').addEventListener('change', function() {
+            const postsPerPage = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('postsPerPage', postsPerPage);
+            window.location.href = url.href;
         });
-    });
 
-    // 검색 버튼 클릭 이벤트
-    document.getElementById('btnNavbarSearch').addEventListener('click', () => {
-        const searchOrder = document.getElementById('searchOrder').value;
-        const searchKeyword = document.getElementById('searchKeyword').value;
-        location.href = 'board.php?searchOrder=' + searchOrder + '&searchKeyword=' + searchKeyword;
-    });
+        document.querySelector('#btnNavbarSearch').addEventListener('click', function() {
+            const searchOrder = document.querySelector('#searchOrder').value;
+            const searchKeyword = document.querySelector('#searchKeyword').value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('searchOrder', searchOrder);
+            url.searchParams.set('searchKeyword', searchKeyword);
+            window.location.href = url.href;
+        });
 
-    // 페이지당 게시글 수 선택 이벤트
-    document.getElementById('postsPerPage').addEventListener('change', () => {
-        const postsPerPage = document.getElementById('postsPerPage').value;
-        location.href = 'board.php?page=1&postsPerPage=' + postsPerPage;
-    });
-</script>
-<?php require_once('../base_footer.php'); ?>
+        document.querySelectorAll('.board-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                window.location.href = `board_detail.php?id=${id}`;
+            });
+        });
+    </script>
+</body>
+</html>
